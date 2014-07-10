@@ -60,7 +60,7 @@ class ofxSlitScan
 	 * type is  OF_IMAGE_GRAYSCALE, OF_IMAGE_COLOR, or OF_IMAGE_COLOR_ALPHA
 	 * default type is OF_IMAGE_COLOR
 	 */
-	void setup(int w, int h, int capacity);
+	void setup(int w, int h, int capacity, ofImageType type);
 
 	bool isSetup();
 
@@ -132,6 +132,7 @@ class ofxSlitScan
 	bool isBlending();
 	
   protected:
+    int bytesPerPixel;
 	unsigned char ** buffer;
 	float * delayMapPixels;
 	bool blend;

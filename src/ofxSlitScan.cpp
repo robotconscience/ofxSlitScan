@@ -45,10 +45,10 @@
 
 #include "ofxSlitScan.h"
 
-#define BYTES_PER_PIXEL 3
+//#define BYTES_PER_PIXEL 1
 
 //converts from an index (0, capacity) to the appropriate fraem in the rolling buffer
-static inline int frame_index(int framepointer, int index, int capacity){ 
+static inline int frame_index(int framepointer, int index, int capacity){
 	framepointer += index;
     if(framepointer < capacity) {
         return framepointer;
@@ -60,16 +60,17 @@ ofxSlitScan::ofxSlitScan()
 :buffersAllocated(false) {
 }
 
-void ofxSlitScan::setup(int w, int h, int _capacity) {
-    switch (BYTES_PER_PIXEL) {
-		case 1:{
-			type = OF_IMAGE_GRAYSCALE;
+void ofxSlitScan::setup(int w, int h, int _capacity, ofImageType _type) {
+    type = _type;
+    switch (type) {
+		case OF_IMAGE_GRAYSCALE:{
+			bytesPerPixel = 1;
 		}break;
-		case 3:{
-			type = OF_IMAGE_COLOR;
+		case OF_IMAGE_COLOR:{
+            bytesPerPixel = 3;
 		}break;
-		case 4:{
-			type = OF_IMAGE_COLOR_ALPHA;
+		case OF_IMAGE_COLOR_ALPHA:{
+            bytesPerPixel = 4;
 		}break;
 		default:{
 			ofLog(OF_LOG_ERROR, "ofxSlitScan Error -- Invalid image type");
@@ -94,7 +95,7 @@ void ofxSlitScan::setup(int w, int h, int _capacity) {
 	blend = false;
 	timeDelay = 0;
 	timeWidth = capacity;
-	bytesPerFrame = width*height*BYTES_PER_PIXEL;
+	bytesPerFrame = width*height*bytesPerPixel;
 	delayMapPixels = (float*)calloc(w*h, sizeof(float));
 	buffer = (unsigned char**)calloc(capacity, sizeof(unsigned char*));
 	for(int i = 0; i < capacity; i++){
@@ -257,10 +258,10 @@ ofImage& ofxSlitScan::getOutputImage(){
                 unsigned char *b = buffer[upper_offset] + pixelIndex;
                 
                 //interpolate and set values
-                for(int c = 0; c < BYTES_PER_PIXEL; c++) {
+                for(int c = 0; c < bytesPerPixel; c++) {
                     *outbuffer++ = (a[c]*invalpha)+(b[c]*alpha);
                 }
-                pixelIndex += BYTES_PER_PIXEL;
+                pixelIndex += bytesPerPixel;
             }
 		}
 		else{
@@ -269,10 +270,10 @@ ofImage& ofxSlitScan::getOutputImage(){
                 int index = delayMapPixels[i] * mapRange + mapMin;
                 index = frame_index(framepointer, index, capacity);
                 // faster than memcpy because the compiler can optimize it
-                for(int c = 0; c < BYTES_PER_PIXEL; c++) {
+                for(int c = 0; c < bytesPerPixel; c++) {
                     *outbuffer++ = buffer[index][pixelIndex + c];
                 }
-                pixelIndex += BYTES_PER_PIXEL;
+                pixelIndex += bytesPerPixel;
 			}
 		}
 		outputImage.setFromPixels(writebuffer, width, height, type);
